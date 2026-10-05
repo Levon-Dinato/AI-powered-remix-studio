@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RemixForge AI — Studio de Remix IA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg-0: #05050A; --bg-1: #0A0A12; --bg-2: #10101C;
+    --bg-3: #17172A; --bg-4: #1F1F35;
+    --border: #26263E; --border-hi: #3A3A5C;
+    --text: #F0F0F8; --text-dim: #7A7A9A; --text-mute: #4A4A66;
+    --neon-cyan: #00F0FF; --neon-pink: #FF0080;
+    --neon-purple: #9D00FF; --neon-green: #00FF9D;
+    --neon-yellow: #FFD600; --neon-orange: #FF6B00;
+    --grad-primary: linear-gradient(135deg, #00F0FF 0%, #9D00FF 50%, #FF0080 100%);
+    --grad-mix: linear-gradient(135deg, #FF0080 0%, #9D00FF 100%);
+    --grad-cool: linear-gradient(135deg, #00FF9D 0%, #00F0FF 100%);
+  }
+  html, body {
+    height: 100%; font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg-0); color: var(--text); overflow: hidden;
+  }
+  body { display: flex; flex-direction: column; position: relative; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,240,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,240,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+    animation: gridMove 20s linear infinite;
+  }
+  @keyframes gridMove { to { background-position: 40px 40px; } }
+  body::after {
+    content: ''; position: fixed; inset: 0;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(0,240,255,0.08), transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(255,0,128,0.08), transparent 40%);
+    pointer-events: none; z-index: 0;
+  }
+
+  header {
+    height: 68px; background: linear-gradient(180deg, var(--bg-1), var(--bg-2));
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 24px; gap: 20px;
+    flex-shrink: 0; position: relative; z-index: 10;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.6);
+  }
+  header::after {
+    content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-purple), transparent);
+    opacity: 0.6;
+  }
+  .logo {
+    font-weight: 900; font-size: 20px; letter-spacing: -0.5px;
+    background: var(--grad-primary); -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: flex; align-items: center; gap: 8px;
+    filter: drop-shadow(0 0 12px rgba(0,240,255,0.5));
+  }
+  .logo::before { content: '◢'; font-size: 22px; -webkit-text-fill-color: var(--neon-cyan); }
+  .project-name {
+    font-size: 12px; color: var(--text-dim); padding: 7px 14px;
+    background: var(--bg-3); border-radius: 8px; border: 1px solid var(--border);
+    max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .badge {
+    font-size: 10px; padding: 4px 10px; border-radius: 12px;
+    background: var(--neon-green); color: #000; font-weight: 800;
+    letter-spacing: 0.5px; box-shadow: 0 0 16px rgba(0,255,157,0.4);
+  }
+  .badge.demo { background: var(--neon-yellow); }
+  .header-actions { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+  .btn {
+    background: var(--bg-3); color: var(--text); border: 1px solid var(--border);
+    padding: 9px 16px; border-radius: 8px; cursor: pointer;
+    font-family: inherit; font-size: 12px; font-weight: 600;
+    letter-spacing: 0.3px; transition: all 0.2s;
+  }
+  .btn:hover:not(:disabled) {
+    border-color: var(--neon-cyan); color: var(--neon-cyan);
+    box-shadow: 0 0 20px rgba(0,240,255,0.25); transform: translateY(-1px);
+  }
+  .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .btn-primary {
+    background: var(--grad-mix); border: none; color: #fff;
+    font-weight: 700; box-shadow: 0 4px 20px rgba(255,0,128,0.35);
+  }
+  .btn-primary:hover:not(:disabled) {
+    color: #fff; box-shadow: 0 6px 28px rgba(255,0,128,0.55);
+  }
+  .btn.active {
+    background: var(--grad-cool); border-color: transparent;
+    color: #000; font-weight: 800;
+    box-shadow: 0 0 20px rgba(0,255,157,0.5);
+  }
+  .btn-cdj {
+    background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+    border: none; color: #fff; font-weight: 700;
+  }
+  .btn-cdj:hover:not(:disabled) { color: #fff; }
+
+  .main {
+    flex: 1; display: grid;
+    grid-template-columns: 300px 1fr 340px;
+    overflow: hidden; position: relative; z-index: 1;
+  }
+  .panel {
+    background: linear-gradient(180deg, var(--bg-1), var(--bg-2));
+    overflow-y: auto; position: relative;
+  }
+  .panel-left { border-right: 1px solid var(--border); }
+  .panel-right { border-left: 1px solid var(--border); }
+  .panel-title {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 2px;
+    color: var(--text-dim); padding: 18px 20px 10px; font-weight: 800;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .panel-title::before {
+    content: ''; width: 3px; height: 10px; background: var(--neon-cyan);
+    border-radius: 2px; box-shadow: 0 0 8px var(--neon-cyan);
+  }
+
+  /* Stems */
+  .stem {
+    display: flex; align-items: center; padding: 10px 16px; gap: 10px;
+    border-left: 3px solid transparent; transition: all 0.2s;
+    position: relative; margin: 2px 12px; border-radius: 8px;
+  }
+  .stem:hover { background: var(--bg-3); }
+  .stem.muted { opacity: 0.35; }
+  .stem.soloed { background: rgba(0,255,157,0.08); }
+  .stem-icon {
+    width: 28px; height: 28px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 900; flex-shrink: 0;
+    box-shadow: 0 0 12px currentColor;
+  }
+  .stem-name { font-size: 12px; flex: 1; font-weight: 600; letter-spacing: 0.3px; }
+  .stem-status {
+    font-size: 9px; color: var(--text-mute);
+    font-family: 'JetBrains Mono', monospace;
+    padding: 2px 6px; background: var(--bg-3); border-radius: 6px;
+  }
+  .stem-status.ready { color: var(--neon-green); }
+  .stem-controls { display: flex; gap: 5px; }
+  .stem-btn {
+    width: 24px; height: 24px; border-radius: 5px; background: var(--bg-3);
+    border: 1px solid var(--border); color: var(--text-mute);
+    font-size: 10px; font-weight: 800; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .stem-btn:hover { border-color: var(--neon-cyan); color: var(--neon-cyan); }
+  .stem-btn.active-mute {
+    background: var(--neon-pink); color: #fff; border-color: var(--neon-pink);
+  }
+  .stem-btn.active-solo {
+    background: var(--neon-green); color: #000; border-color: var(--neon-green);
+  }
+
+  /* Center */
+  .center { display: flex; flex-direction: column; background: var(--bg-0); overflow: hidden; position: relative; }
+  .transport {
+    padding: 16px 24px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 14px;
+    background: linear-gradient(180deg, var(--bg-1), var(--bg-2));
+    position: relative;
+  }
+  .transport::after {
+    content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0,240,255,0.4), transparent);
+  }
+  .play-btn {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--grad-mix); border: none; cursor: pointer; color: #fff;
+    font-size: 18px; flex-shrink: 0; transition: all 0.2s;
+    box-shadow: 0 0 0 2px rgba(255,0,128,0.3), 0 0 24px rgba(255,0,128,0.5);
+  }
+  .play-btn:hover:not(:disabled) {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 3px rgba(255,0,128,0.5), 0 0 40px rgba(255,0,128,0.8);
+  }
+  .play-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .play-btn.playing { animation: playingPulse 1.4s ease-in-out infinite; }
+  @keyframes playingPulse {
+    50% { box-shadow: 0 0 0 3px rgba(255,0,128,0.6), 0 0 48px rgba(255,0,128,0.9); }
+  }
+  .stop-btn, .rec-btn {
+    width: 40px; height: 40px; border-radius: 50%; background: var(--bg-3);
+    border: 1px solid var(--border); cursor: pointer; color: var(--text-dim);
+    font-size: 13px; flex-shrink: 0; transition: all 0.15s;
+  }
+  .stop-btn:hover:not(:disabled) {
+    border-color: var(--neon-cyan); color: var(--neon-cyan);
+    box-shadow: 0 0 16px rgba(0,240,255,0.4);
+  }
+  .rec-btn:hover:not(:disabled) {
+    border-color: var(--neon-pink); color: var(--neon-pink);
+    box-shadow: 0 0 16px rgba(255,0,128,0.4);
+  }
+  .stop-btn:disabled, .rec-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .rec-btn.recording {
+    background: var(--neon-pink); color: #fff; border-color: var(--neon-pink);
+    animation: recPulse 1s infinite;
+  }
+  @keyframes recPulse { 50% { box-shadow: 0 0 40px rgba(255,0,128,1); transform: scale(1.05); } }
+  .sync-btn {
+    height: 40px; padding: 0 16px; border-radius: 8px; background: var(--bg-3);
+    border: 1px solid var(--border); cursor: pointer; color: var(--text);
+    font-size: 12px; font-weight: 700; font-family: inherit;
+    transition: all 0.15s; flex-shrink: 0;
+  }
+  .sync-btn:hover:not(:disabled) {
+    border-color: var(--neon-purple); color: var(--neon-purple);
+    box-shadow: 0 0 16px rgba(157,0,255,0.4);
+  }
+  .sync-btn.active {
+    background: var(--grad-cool); border-color: transparent;
+    color: #000; box-shadow: 0 0 20px rgba(0,255,157,0.5);
+  }
+  .sync-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .lufs-mini {
+    display: flex; flex-direction: column; padding: 6px 16px;
+    background: var(--bg-2); border-radius: 8px; border: 1px solid var(--border);
+    min-width: 90px;
+  }
+  .lufs-mini .label {
+    font-size: 8px; color: var(--text-dim); text-transform: uppercase;
+    letter-spacing: 1.5px; font-weight: 700;
+  }
+  .lufs-mini .value {
+    font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 16px;
+    color: var(--neon-cyan); text-shadow: 0 0 12px rgba(0,240,255,0.6);
+    line-height: 1.1;
+  }
+  .time-display {
+    font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700;
+    padding: 0 16px; margin-left: auto;
+    text-shadow: 0 0 16px rgba(0,240,255,0.4);
+  }
+  .time-display .total { color: var(--text-mute); font-size: 14px; }
+  .vu-meter { display: flex; gap: 3px; padding: 0 12px; height: 40px; align-items: flex-end; }
+  .vu-bar {
+    width: 4px;
+    background: linear-gradient(to top, var(--neon-green) 0%, var(--neon-yellow) 50%, var(--neon-pink) 100%);
+    border-radius: 2px; transition: height 0.08s linear; height: 4px;
+    box-shadow: 0 0 8px currentColor;
+  }
+
+  .visualizers {
+    position: relative; height: 120px; padding: 12px 24px;
+    background: linear-gradient(180deg, var(--bg-1), var(--bg-2));
+    border-bottom: 1px solid var(--border);
+  }
+  #spectrumCanvas { width: 100%; height: 100%; display: block; border-radius: 8px; }
+  .canvas-label {
+    position: absolute; top: 16px; left: 32px; font-size: 9px;
+    color: var(--text-dim); letter-spacing: 2px; font-weight: 800; z-index: 2;
+  }
+
+  .waveform-container {
+    height: 100px; margin: 16px 24px;
+    background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
+    border: 1px solid var(--border); border-radius: 12px;
+    position: relative; overflow: hidden; cursor: pointer;
+    box-shadow: inset 0 2px 12px rgba(0,0,0,0.6);
+  }
+  #waveformCanvas { width: 100%; height: 100%; display: block; }
+  .playhead-wave {
+    position: absolute; top: 0; bottom: 0; width: 2px;
+    background: var(--neon-pink);
+    box-shadow: 0 0 16px var(--neon-pink);
+    pointer-events: none; transition: left 0.05s linear; z-index: 3;
+  }
+  .playhead-wave::before {
+    content: ''; position: absolute; top: -6px; left: -6px;
+    width: 14px; height: 14px; background: var(--neon-pink); border-radius: 50%;
+    box-shadow: 0 0 20px var(--neon-pink);
+  }
+
+  .daw-container {
+    flex: 1; display: flex; flex-direction: column;
+    padding: 0 24px 24px; overflow: hidden; min-height: 0;
+  }
+  .daw-toolbar {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
+  }
+  .daw-toolbar-label {
+    font-size: 10px; color: var(--text-dim); letter-spacing: 2px;
+    font-weight: 800; margin-right: auto;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .daw-toolbar-label::before {
+    content: ''; width: 3px; height: 10px; background: var(--neon-pink);
+    border-radius: 2px; box-shadow: 0 0 8px var(--neon-pink);
+  }
+  .daw-hint {
+    font-size: 10px; color: var(--text-mute); font-family: 'JetBrains Mono', monospace;
+  }
+  .daw-timeline {
+    flex: 1; overflow: auto;
+    background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
+    border: 1px solid var(--border); border-radius: 12px;
+    position: relative; min-height: 0;
+    box-shadow: inset 0 2px 12px rgba(0,0,0,0.5);
+  }
+  .daw-row {
+    display: flex; height: 60px; border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  .daw-row:last-child { border-bottom: none; }
+  .daw-row-label {
+    width: 90px; flex-shrink: 0; font-size: 10px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 1.5px;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(90deg, var(--bg-3), var(--bg-2));
+    border-right: 1px solid var(--border);
+    position: sticky; left: 0; z-index: 2;
+  }
+  .daw-lane {
+    position: relative; height: 100%; min-width: 100%;
+    background-image:
+      repeating-linear-gradient(90deg, transparent 0, transparent 39px, rgba(255,255,255,0.02) 39px, rgba(255,255,255,0.02) 40px);
+  }
+  .daw-clip {
+    position: absolute; top: 6px; bottom: 6px;
+    border: 1px solid; border-radius: 6px; overflow: hidden;
+    cursor: grab; user-select: none; transition: box-shadow 0.15s;
+  }
+  .daw-clip:hover {
+    box-shadow: 0 0 0 1px var(--neon-cyan), 0 0 24px rgba(0,240,255,0.4);
+  }
+  .daw-clip-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 3px 8px; font-size: 9px; background: rgba(0,0,0,0.5);
+    position: relative; z-index: 4; font-weight: 800;
+    letter-spacing: 0.5px; text-transform: uppercase;
+  }
+  .daw-clip-envelope {
+    position: absolute; top: 22px; left: 0;
+    width: 100%; height: calc(100% - 22px);
+    cursor: crosshair; z-index: 3;
+  }
+  .daw-playhead {
+    position: absolute; top: 0; bottom: 0; width: 2px;
+    background: var(--neon-cyan);
+    box-shadow: 0 0 12px var(--neon-cyan);
+    pointer-events: none; z-index: 5; transition: left 0.03s linear;
+  }
+
+  .section { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+  .section-title {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 2px;
+    color: var(--text-dim); font-weight: 800; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title::before {
+    content: ''; width: 3px; height: 10px; background: var(--neon-purple);
+    border-radius: 2px; box-shadow: 0 0 8px var(--neon-purple);
+  }
+  .drop-zone {
+    border: 2px dashed var(--border-hi); border-radius: 12px;
+    padding: 24px 16px; text-align: center; cursor: pointer;
+    background: var(--bg-3); transition: all 0.2s;
+  }
+  .drop-zone:hover, .drop-zone.drag {
+    border-color: var(--neon-cyan); box-shadow: 0 0 24px rgba(0,240,255,0.3);
+  }
+  .drop-zone .icon { font-size: 32px; margin-bottom: 8px; }
+  .drop-zone .title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .drop-zone .sub {
+    font-size: 10px; color: var(--text-mute);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .preset-btn {
+    font-size: 10px; padding: 10px 6px; background: var(--bg-3);
+    border: 1px solid var(--border); border-radius: 8px; cursor: pointer;
+    text-align: center; font-weight: 700; color: var(--text-dim);
+    transition: all 0.2s; letter-spacing: 0.3px;
+  }
+  .preset-btn:hover {
+    border-color: var(--neon-purple); color: var(--neon-purple);
+    transform: translateY(-1px);
+  }
+  .preset-btn.active {
+    background: var(--grad-mix); color: #fff; border-color: transparent;
+    box-shadow: 0 0 20px rgba(255,0,128,0.5); font-weight: 800;
+  }
+
+  .chat-container {
+    display: flex; flex-direction: column; height: 140px;
+    border: 1px solid var(--border); border-radius: 10px;
+    overflow: hidden; background: var(--bg-0);
+  }
+  .chat-messages { flex: 1; overflow-y: auto; padding: 10px; }
+  .chat-message { margin-bottom: 10px; }
+  .chat-header { display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 3px; }
+  .chat-author { font-weight: 800; }
+  .chat-time { color: var(--text-mute); font-family: 'JetBrains Mono', monospace; }
+  .chat-body {
+    font-size: 12px; padding: 7px 10px; background: var(--bg-3);
+    border-radius: 8px; word-break: break-word;
+    border-left: 2px solid currentColor;
+  }
+  .chat-body.system {
+    background: rgba(255,214,0,0.08); color: var(--neon-yellow);
+    font-style: italic; border-left-color: var(--neon-yellow);
+  }
+  .chat-input { padding: 8px; background: var(--bg-2); border-top: 1px solid var(--border); }
+  .chat-input input {
+    width: 100%; background: var(--bg-3); border: 1px solid var(--border);
+    color: var(--text); padding: 8px 10px; border-radius: 6px;
+    font-family: inherit; font-size: 12px; outline: none;
+  }
+  .chat-input input:focus { border-color: var(--neon-cyan); }
+
+  .status {
+    height: 36px; background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
+    border-top: 1px solid var(--border); display: flex; align-items: center;
+    padding: 0 24px; font-size: 11px; color: var(--text-dim); gap: 20px;
+    position: relative; z-index: 10;
+  }
+  .status-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--neon-green);
+    box-shadow: 0 0 12px var(--neon-green); display: inline-block; margin-right: 8px;
+    animation: statusPulse 2s ease-in-out infinite;
+  }
+  @keyframes statusPulse { 50% { opacity: 0.5; } }
+  .status-dot.busy {
+    background: var(--neon-yellow); box-shadow: 0 0 12px var(--neon-yellow);
+    animation: pulse 0.8s infinite;
+  }
+  @keyframes pulse { 50% { opacity: 0.3; transform: scale(0.9); } }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg-1); }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--neon-cyan), var(--neon-purple));
+    border-radius: 4px;
+  }
+
+  /* Welcome overlay */
+  .welcome {
+    position: fixed; inset: 0; z-index: 100;
+    background: radial-gradient(circle at center, rgba(0,240,255,0.1), var(--bg-0) 70%);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px; backdrop-filter: blur(8px);
+  }
+  .welcome.hidden { display: none; }
+  .welcome-card {
+    background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
+    border: 1px solid var(--border-hi); border-radius: 20px;
+    padding: 48px; max-width: 600px; width: 100%; text-align: center;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(0,240,255,0.1);
+  }
+  .welcome-card h1 {
+    font-size: 32px; font-weight: 900; margin-bottom: 12px;
+    background: var(--grad-primary); -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -1px;
+  }
+  .welcome-card p {
+    font-size: 14px; color: var(--text-dim); line-height: 1.6;
+    margin-bottom: 32px;
+  }
+  .welcome-card .big-icon { font-size: 64px; margin-bottom: 16px; display: block; }
+
+  @media (max-width: 1200px) {
+    .main { grid-template-columns: 260px 1fr 300px; }
+  }
+  @media (max-width: 900px) {
+    .main { grid-template-columns: 1fr; }
+    .panel-left, .panel-right { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">RemixForge AI</div>
+  <div class="project-name" id="projectName">📁 Aucun projet</div>
+  <div class="badge demo" id="modeBadge">MODE DÉMO</div>
+  <div class="header-actions">
+    <button class="btn" onclick="showHelp()">❓ Aide</button>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- LEFT PANEL -->
+  <aside class="panel panel-left">
+    <div class="panel-title">🎚 Stems</div>
+    <div id="stemsContainer">
+      <div style="padding: 16px 20px; color: var(--text-mute); font-size: 11px; font-family: 'JetBrains Mono', monospace;">
+        // Charge un morceau pour voir les stems
+      </div>
+    </div>
+
+    <div class="panel-title" style="margin-top:20px;">📊 LUFS</div>
+    <div style="padding: 0 20px 20px;">
+      <div style="background: var(--bg-3); border-radius: 10px; padding: 14px; border: 1px solid var(--border); text-align: center;">
+        <div style="font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; margin-bottom: 4px;">Integrated LUFS</div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 900; color: var(--neon-cyan); text-shadow: 0 0 16px rgba(0,240,255,0.6); line-height: 1.1;">
+          <span id="lufsValue">--</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- CENTER -->
+  <main class="center">
+    <div class="transport">
+      <button class="play-btn" id="playBtn" onclick="togglePlay()" disabled>▶</button>
+      <button class="stop-btn" id="stopBtn" onclick="stopAll()" disabled>■</button>
+      <button class="rec-btn" id="recBtn" onclick="toggleRecording()" disabled>⏺</button>
+      <button class="sync-btn" id="syncBtn" onclick="toggleSync()" disabled>🔗 SYNC</button>
+
+      <div class="vu-meter" id="vuMeter">
+        <div class="vu-bar"></div><div class="vu-bar"></div><div class="vu-bar"></div>
+        <div class="vu-bar"></div><div class="vu-bar"></div><div class="vu-bar"></div>
+        <div class="vu-bar"></div><div class="vu-bar"></div><div class="vu-bar"></div>
+        <div class="vu-bar"></div><div class="vu-bar"></div><div class="vu-bar"></div>
+        <div class="vu-bar"></div><div class="vu-bar"></div><div class="vu-bar"></div>
+        <div class="vu-bar"></div>
+      </div>
+
+      <div class="lufs-mini">
+        <div class="label">LUFS</div>
+        <div class="value" id="lufsLive">--</div>
+      </div>
+
+      <div class="time-display">
+        <span id="currentTime">00:00.0</span>
+        <span class="total" id="totalTime">/ 00:00.0</span>
+      </div>
+    </div>
+
+    <div class="visualizers">
+      <canvas id="spectrumCanvas"></canvas>
+      <div class="canvas-label">SPECTRUM FFT</div>
+    </div>
+
+    <div class="waveform-container" id="waveformContainer" onclick="seekFromEvent(event)">
+      <canvas id="waveformCanvas"></canvas>
+      <div class="playhead-wave" id="playheadWave"></div>
+    </div>
+
+    <div class="daw-container">
+      <div class="daw-toolbar">
+        <span class="daw-toolbar-label">🎛 TIMELINE</span>
+        <span class="daw-hint">Ctrl+clic ajoute · Alt+clic supprime · Drag déplace</span>
+      </div>
+      <div class="daw-timeline" id="dawTimeline">
+        <div style="padding: 40px; color: var(--text-mute); font-size: 12px; text-align: center; font-family: 'JetBrains Mono', monospace;">
+          // Importe un morceau pour voir la timeline
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- RIGHT PANEL -->
+  <aside class="panel panel-right">
+    <div class="section">
+      <div class="section-title">📁 Importer</div>
+      <div class="drop-zone" id="dropZone">
+        <div class="icon">🎵</div>
+        <div class="title">Dépose ton morceau</div>
+        <div class="sub">WAV · MP3 · FLAC · M4A</div>
+      </div>
+      <input type="file" id="fileInput" accept="audio/*" hidden>
+    </div>
+
+    <div class="section">
+      <div class="section-title">🎚 Presets mastering</div>
+      <div class="preset-grid" id="masterPresets"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">📤 Export</div>
+      <button class="btn" onclick="exportWav24()" disabled id="exportWavBtn" style="width:100%; font-size:11px;">
+        ⬇ WAV 24-BIT (MIX FINAL)
+      </button>
+    </div>
+
+    <div class="section">
+      <div class="section-title">💬 Chat</div>
+      <div class="chat-container">
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input">
+          <input id="chatInput" placeholder="Message..."
+                 onkeydown="if(event.key==='Enter'){sendChatMessage(this.value);this.value='';}">
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<footer class="status">
+  <span><span class="status-dot" id="statusDot"></span><span id="statusText">Prêt</span></span>
+  <span id="statusInfo" style="font-family: 'JetBrains Mono', monospace;">// Aucun fichier</span>
+  <span style="margin-left:auto; font-family: 'JetBrains Mono', monospace; font-size: 10px;">
+    MODE : <span style="color: var(--neon-cyan);">DÉMO</span>
+  </span>
+</footer>
+
+<!-- Welcome overlay -->
+<div class="welcome" id="welcomeOverlay">
+  <div class="welcome-card">
+    <span class="big-icon">🎛</span>
+    <h1>RemixForge AI</h1>
+    <p>
+      Studio de remix IA dans ton navigateur.<br>
+      Importe un morceau pour commencer.
+    </p>
+    <div class="drop-zone" onclick="document.getElementById('fileInput').click()" style="cursor:pointer;">
+      <div class="icon">🎵</div>
+      <div class="title">Clique ou dépose ton morceau</div>
+      <div class="sub">WAV · MP3 · FLAC · M4A</div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   RemixForge AI — Version démo
+   ============================================================ */
+
+const state = {
+  ctx: null,
+  masterGain: null,
+  masterLimiter: null,
+  analyser: null,
+  freqData: null,
+  timeData: null,
+  mediaStreamDest: null,
+  mediaRecorder: null,
+  recordedChunks: [],
+  stemNodes: {},
+  stemBuffers: {},
+  stemVolumes: {},
+  muteState: {},
+  soloState: {},
+  isPlaying: false,
+  startedAt: 0,
+  pauseOffset: 0,
+  duration: 0,
+  syncEnabled: false,
+  masterPreset: 'streaming',
+  lufsLastUpdate: 0,
+};
+
+window.audioCtx = null;
+window.stemNodes = null;
+
+const STEM_META = {
+  vocals: { color: '#FF0080', letter: 'V', label: 'Vocals', filterType: 'bandpass', freq: 2000, Q: 1.5 },
+  drums:  { color: '#FFD600', letter: 'D', label: 'Drums',  filterType: 'highpass', freq: 150,  Q: 0.7 },
+  bass:   { color: '#00F0FF', letter: 'B', label: 'Bass',   filterType: 'lowpass',  freq: 250,  Q: 0.7 },
+  other:  { color: '#9D00FF', letter: 'O', label: 'Other',  filterType: 'bandpass', freq: 500,  Q: 0.7 },
+  guitar: { color: '#00FF9D', letter: 'G', label: 'Guitar', filterType: 'bandpass', freq: 1200, Q: 1.0 },
+  piano:  { color: '#FF6B00', letter: 'P', label: 'Piano',  filterType: 'bandpass', freq: 800,  Q: 1.2 },
+};
+
+const MASTER_PRESETS = {
+  streaming: { lufs: -14.0, tp: -1.0,  gain: 1.0, label: 'STREAMING' },
+  club:      { lufs: -8.0,  tp: -0.5,  gain: 1.6, label: 'CLUB' },
+  dj:        { lufs: -9.0,  tp: -1.0,  gain: 1.4, label: 'DJ' },
+  broadcast: { lufs: -23.0, tp: -2.0,  gain: 0.5, label: 'BROADCAST' },
+};
+
+const TAB_ID = 'tab_' + Math.random().toString(36).slice(2, 8);
+
+/* ---------- AudioContext ---------- */
+function ensureContext() {
+  if (state.ctx) return;
+  state.ctx = new (window.AudioContext || window.webkitAudioContext)();
+  window.audioCtx = state.ctx;
+
+  state.masterGain = state.ctx.createGain();
+  state.masterGain.gain.value = 0.8;
+
+  state.masterLimiter = state.ctx.createDynamicsCompressor();
+  state.masterLimiter.threshold.value = -1.0;
+  state.masterLimiter.knee.value = 0;
+  state.masterLimiter.ratio.value = 20;
+  state.masterLimiter.attack.value = 0.001;
+  state.masterLimiter.release.value = 0.05;
+
+  state.analyser = state.ctx.createAnalyser();
+  state.analyser.fftSize = 2048;
+  state.analyser.smoothingTimeConstant = 0.8;
+  state.freqData = new Float32Array(state.analyser.frequencyBinCount);
+  state.timeData = new Float32Array(state.analyser.fftSize);
+
+  state.masterGain.connect(state.masterLimiter);
+  state.masterLimiter.connect(state.analyser);
+  state.analyser.connect(state.ctx.destination);
+
+  try {
+    state.mediaStreamDest = state.ctx.createMediaStreamDestination();
+    state.masterLimiter.connect(state.mediaStreamDest);
+  } catch (e) {}
+}
+
+/* ---------- Upload ---------- */
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.onclick = () => fileInput.click();
+['dragenter', 'dragover'].forEach(ev =>
+  dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.add('drag'); })
+);
+['dragleave', 'drop'].forEach(ev =>
+  dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.remove('drag'); })
+);
+dropZone.addEventListener('drop', e => {
+  const f = e.dataTransfer.files[0];
+  if (f) uploadFile(f);
+});
+fileInput.onchange = () => fileInput.files[0] && uploadFile(fileInput.files[0]);
+
+async function uploadFile(file) {
+  ensureContext();
+  document.getElementById('projectName').textContent = '📁 ' + file.name;
+  document.getElementById('welcomeOverlay').classList.add('hidden');
+  setStatus('Chargement...', true);
+
+  try {
+    const ab = await file.arrayBuffer();
+    if (state.ctx.state === 'suspended') await state.ctx.resume();
+    const decoded = await state.ctx.decodeAudioData(ab);
+    state.duration = decoded.duration;
+
+    // 6 stems simulés (même buffer, filtrés différemment)
+    state.stemBuffers = {};
+    for (const name of Object.keys(STEM_META)) {
+      state.stemBuffers[name] = decoded;
+      state.stemVolumes[name] = 0.8;
+    }
+
+    document.getElementById('totalTime').textContent = '/ ' + fmtTime(state.duration);
+    buildStemNodes();
+    buildStemUI();
+    drawWaveform();
+    startSpectrumLoop();
+    startLufsMonitor();
+    startVuMeter();
+    initTimeline();
+    enableControls(true);
+
+    setStatus('Prêt ✓', false);
+    setStatusInfo(file.name + ' · ' + fmtTime(state.duration));
+    addChatMessage('system', '✓ ' + file.name, '#00FF9D');
+  } catch (err) {
+    console.error(err);
+    setStatus('Erreur', false);
+    alert('Impossible de décoder ce fichier.');
+  }
+}
+
+function enableControls(on) {
+  ['playBtn', 'stopBtn', 'recBtn', 'syncBtn', 'exportWavBtn'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = !on;
+  });
+}
+
+/* ---------- Stems ---------- */
+function buildStemNodes() {
+  for (const n of Object.values(state.stemNodes)) {
+    try { n.source?.disconnect(); n.gain.disconnect(); n.filter.disconnect(); } catch(e) {}
+  }
+  state.stemNodes = {};
+  window.stemNodes = state.stemNodes;
+
+  for (const [name, meta] of Object.entries(STEM_META)) {
+    const buffer = state.stemBuffers[name];
+    if (!buffer) continue;
+
+    const filter = state.ctx.createBiquadFilter();
+    filter.type = meta.filterType;
+    filter.frequency.value = meta.freq;
+    filter.Q.value = meta.Q;
+
+    const gain = state.ctx.createGain();
+    gain.gain.value = state.stemVolumes[name];
+    filter.connect(gain);
+    gain.connect(state.masterGain);
+
+    state.stemNodes[name] = { buffer, gain, filter, source: null };
+  }
+}
+
+function buildStemUI() {
+  const c = document.getElementById('stemsContainer');
+  c.innerHTML = '';
+  for (const [name, meta] of Object.entries(STEM_META)) {
+    if (!state.stemBuffers[name]) continue;
+    const el = document.createElement('div');
+    el.className = 'stem';
+    el.dataset.stem = name;
+    el.innerHTML = `
+      <div class="stem-icon" style="background:${meta.color};color:#000">${meta.letter}</div>
+      <div class="stem-name">${meta.label}</div>
+      <span class="stem-status ready">ready</span>
+      <div class="stem-controls">
+        <div class="stem-btn" data-action="mute">M</div>
+        <div class="stem-btn" data-action="solo">S</div>
+      </div>
+    `;
+    c.appendChild(el);
+
+    el.querySelector('[data-action="mute"]').onclick = (e) => {
+      e.stopPropagation();
+      state.muteState[name] = !state.muteState[name];
+      el.classList.toggle('muted', state.muteState[name]);
+      el.querySelector('[data-action="mute"]').classList.toggle('active-mute', state.muteState[name]);
+      applyMix();
+    };
+    el.querySelector('[data-action="solo"]').onclick = (e) => {
+      e.stopPropagation();
+      state.soloState[name] = !state.soloState[name];
+      el.classList.toggle('soloed', state.soloState[name]);
+      el.querySelector('[data-action="solo"]').classList.toggle('active-solo', state.soloState[name]);
+      applyMix();
+    };
+  }
+}
+
+function applyMix() {
+  if (!state.ctx) return;
+  const anySolo = Object.values(state.soloState).some(v => v);
+  for (const [name, node] of Object.entries(state.stemNodes)) {
+    let target;
+    if (anySolo) target = state.soloState[name] ? state.stemVolumes[name] : 0;
+    else target = state.muteState[name] ? 0 : state.stemVolumes[name];
+    node.gain.gain.setTargetAtTime(target, state.ctx.currentTime, 0.02);
+  }
+}
+
+/* ---------- Lecture ---------- */
+async function togglePlay() {
+  if (state.isPlaying) pauseAll(); else await playAll();
+}
+
+async function playAll() {
+  ensureContext();
+  if (state.ctx.state === 'suspended') await state.ctx.resume();
+
+  const when = state.ctx.currentTime + 0.1;
+  const offset = state.pauseOffset;
+
+  for (const [name, node] of Object.entries(state.stemNodes)) {
+    const src = state.ctx.createBufferSource();
+    src.buffer = node.buffer;
+    src.connect(node.filter);
+    src.start(when, offset);
+    node.source = src;
+  }
+  state.startedAt = when - offset;
+  state.isPlaying = true;
+  document.getElementById('playBtn').textContent = '⏸';
+  document.getElementById('playBtn').classList.add('playing');
+  setStatus('Lecture', false);
+  updatePlayhead();
+}
+
+function pauseAll() {
+  for (const node of Object.values(state.stemNodes)) {
+    try { node.source?.stop(); node.source?.disconnect(); } catch(e) {}
+    node.source = null;
+  }
+  state.pauseOffset = state.ctx.currentTime - state.startedAt;
+  state.isPlaying = false;
+  document.getElementById('playBtn').textContent = '▶';
+  document.getElementById('playBtn').classList.remove('playing');
+  setStatus('Pause', false);
+}
+
+function stopAll() {
+  pauseAll();
+  state.pauseOffset = 0;
+  updatePlayheadUI(0);
+}
+
+function seekFromEvent(event) {
+  if (!state.ctx || state.duration === 0) return;
+  const rect = event.currentTarget.getBoundingClientRect();
+  const pct = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+  const time = pct * state.duration;
+  if (state.isPlaying) {
+    for (const node of Object.values(state.stemNodes)) {
+      try { node.source?.stop(); node.source?.disconnect(); } catch(e) {}
+      node.source = null;
+    }
+    state.isPlaying = false;
+    state.pauseOffset = time;
+    playAll();
+  } else {
+    state.pauseOffset = time;
+    updatePlayheadUI(time);
+  }
+}
+
+function updatePlayhead() {
+  if (!state.isPlaying) return;
+  const t = state.ctx.currentTime - state.startedAt;
+  if (t >= state.duration) { stopAll(); return; }
+  updatePlayheadUI(t);
+  requestAnimationFrame(updatePlayhead);
+}
+
+function updatePlayheadUI(t) {
+  const pct = state.duration > 0 ? (t / state.duration) * 100 : 0;
+  document.getElementById('playheadWave').style.left = pct + '%';
+  document.getElementById('currentTime').textContent = fmtTime(t);
+}
+
+/* ---------- LUFS + VU ---------- */
+function startLufsMonitor() {
+  const tick = () => {
+    if (state.analyser && state.timeData && state.isPlaying) {
+      state.analyser.getFloatTimeDomainData(state.timeData);
+      let sum = 0;
+      for (let i = 0; i < state.timeData.length; i++) sum += state.timeData[i] * state.timeData[i];
+      const rms = Math.sqrt(sum / state.timeData.length);
+      const lufs = -0.691 + 20 * Math.log10(rms + 1e-12);
+      const now = performance.now();
+      if (now - state.lufsLastUpdate > 200) {
+        state.lufsLastUpdate = now;
+        const display = isFinite(lufs) && lufs > -70 ? lufs.toFixed(1) : '--';
+        document.getElementById('lufsLive').textContent = display;
+        document.getElementById('lufsValue').textContent = display;
+      }
+    }
+    requestAnimationFrame(tick);
+  };
+  tick();
+}
+
+function startVuMeter() {
+  const bars = document.querySelectorAll('.vu-bar');
+  const tick = () => {
+    if (state.analyser && state.timeData) {
+      state.analyser.getFloatTimeDomainData(state.timeData);
+      let sum = 0;
+      for (let i = 0; i < state.timeData.length; i++) sum += state.timeData[i] * state.timeData[i];
+      const rms = Math.sqrt(sum / state.timeData.length);
+      const db = 20 * Math.log10(rms + 1e-12);
+      const norm = Math.max(0, Math.min(1, (db + 60) / 60));
+      const activeBars = Math.floor(norm * bars.length);
+      bars.forEach((bar, i) => {
+        bar.style.height = (i < activeBars ? 6 + norm * 34 : 4) + 'px';
+        bar.style.opacity = i < activeBars ? 1 : 0.15;
+      });
+    }
+    requestAnimationFrame(tick);
+  };
+  tick();
+}
+
+/* ---------- Waveform ---------- */
+function drawWaveform() {
+  const canvas = document.getElementById('waveformCanvas');
+  const container = document.getElementById('waveformContainer');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = container.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = rect.height + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const buf = Object.values(state.stemBuffers)[0];
+  if (!buf) return;
+  const data = buf.getChannelData(0);
+  const W = rect.width, H = rect.height;
+  const step = Math.floor(data.length / W);
+  const peaks = new Float32Array(W);
+  for (let i = 0; i < W; i++) {
+    let max = 0;
+    for (let j = 0; j < step; j++) {
+      const v = Math.abs(data[i * step + j] || 0);
+      if (v > max) max = v;
+    }
+    peaks[i] = max;
+  }
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, '#00F0FF');
+  grad.addColorStop(0.5, '#9D00FF');
+  grad.addColorStop(1, '#FF0080');
+  ctx.fillStyle = grad;
+  ctx.shadowBlur = 8;
+  ctx.shadowColor = '#00F0FF';
+  const mid = H / 2;
+  for (let i = 0; i < W; i++) {
+    const h = peaks[i] * mid * 0.9;
+    ctx.fillRect(i, mid - h, 1, h * 2);
+  }
+  ctx.shadowBlur = 0;
+}
+
+/* ---------- Spectrum ---------- */
+const spectrumCanvas = document.getElementById('spectrumCanvas');
+const spectrumCtx = spectrumCanvas.getContext('2d');
+
+function resizeSpectrum() {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = spectrumCanvas.getBoundingClientRect();
+  spectrumCanvas.width = rect.width * dpr;
+  spectrumCanvas.height = rect.height * dpr;
+  spectrumCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener('resize', resizeSpectrum);
+resizeSpectrum();
+
+function drawSpectrum() {
+  const W = spectrumCanvas.clientWidth;
+  const H = spectrumCanvas.clientHeight;
+  spectrumCtx.clearRect(0, 0, W, H);
+  if (!state.analyser) return;
+  state.analyser.getFloatFrequencyData(state.freqData);
+  const bars = 96;
+  const binSize = Math.floor(state.freqData.length / bars);
+  const barW = W / bars;
+  for (let i = 0; i < bars; i++) {
+    let maxDb = -Infinity;
+    for (let j = 0; j < binSize; j++) maxDb = Math.max(maxDb, state.freqData[i * binSize + j]);
+    const norm = Math.max(0, Math.min(1, (maxDb + 90) / 90));
+    const barH = norm * H;
+    const grad = spectrumCtx.createLinearGradient(0, H - barH, 0, H);
+    grad.addColorStop(0, '#00F0FF');
+    grad.addColorStop(0.4, '#9D00FF');
+    grad.addColorStop(1, '#FF0080');
+    spectrumCtx.fillStyle = grad;
+    spectrumCtx.shadowBlur = norm > 0.5 ? 12 : 0;
+    spectrumCtx.shadowColor = '#00F0FF';
+    spectrumCtx.fillRect(i * barW + 1, H - barH, barW - 2, barH);
+  }
+  spectrumCtx.shadowBlur = 0;
+}
+
+function startSpectrumLoop() {
+  function loop() { drawSpectrum(); requestAnimationFrame(loop); }
+  loop();
+}
+
+/* ---------- Timeline ---------- */
+const TIMELINE = { pixelsPerSecond: 40, clips: [], dragging: null };
+
+function initTimeline() {
+  TIMELINE.clips = [];
+  for (const name of Object.keys(state.stemBuffers)) {
+    TIMELINE.clips.push({
+      id: 'clip_' + name + '_' + Math.random().toString(36).slice(2, 6),
+      stem: name, start: 0, duration: state.duration, gain: 0.8, muted: false,
+      automation: { gain: [{ time: 0, value: 0.8 }, { time: state.duration, value: 0.8 }] },
+    });
+  }
+  renderTimeline();
+  setTimeout(redrawAllEnvelopes, 100);
+}
+
+function renderTimeline() {
+  const container = document.getElementById('dawTimeline');
+  if (!container) return;
+  container.innerHTML = '';
+  const totalDur = Math.max(...TIMELINE.clips.map(c => c.start + c.duration), 10);
+
+  Object.keys(state.stemBuffers).forEach(stem => {
+    const row = document.createElement('div');
+    row.className = 'daw-row';
+    const label = document.createElement('div');
+    label.className = 'daw-row-label';
+    label.textContent = stem;
+    label.style.color = STEM_META[stem]?.color || '#fff';
+    row.appendChild(label);
+    const lane = document.createElement('div');
+    lane.className = 'daw-lane';
+    lane.style.width = (totalDur * TIMELINE.pixelsPerSecond) + 'px';
+    TIMELINE.clips.filter(c => c.stem === stem).forEach(clip => {
+      lane.appendChild(createClipElement(clip));
+    });
+    row.appendChild(lane);
+    container.appendChild(row);
+  });
+
+  const ph = document.createElement('div');
+  ph.className = 'daw-playhead';
+  ph.id = 'dawPlayhead';
+  container.appendChild(ph);
+}
+
+function createClipElement(clip) {
+  const el = document.createElement('div');
+  el.className = 'daw-clip';
+  el.dataset.clipId = clip.id;
+  el.style.left = (clip.start * TIMELINE.pixelsPerSecond) + 'px';
+  el.style.width = (clip.duration * TIMELINE.pixelsPerSecond) + 'px';
+  el.style.background = `linear-gradient(135deg, ${STEM_META[clip.stem].color}22, ${STEM_META[clip.stem].color}11)`;
+  el.style.borderColor = STEM_META[clip.stem].color;
+  el.innerHTML = `
+    <div class="daw-clip-header" style="color: ${STEM_META[clip.stem].color}"><span>${clip.stem}</span></div>
+    <canvas class="daw-clip-envelope"></canvas>
+  `;
+  setTimeout(() => {
+    drawEnvelopeOnCanvas(el.querySelector('.daw-clip-envelope'), clip, 'gain');
+    attachAutomationEvents(el, clip);
+  }, 0);
+  return el;
+}
+
+function drawEnvelopeOnCanvas(canvas, clip, param) {
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth;
+  const h = canvas.clientHeight;
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  const points = clip.automation?.[param] || [];
+  if (!points.length) return;
+  const xOf = t => (t / clip.duration) * w;
+  const yOf = v => h - (v / 1.5) * h;
+  ctx.strokeStyle = '#FFD600';
+  ctx.lineWidth = 2;
+  ctx.shadowBlur = 8;
+  ctx.shadowColor = '#FFD600';
+  ctx.beginPath();
+  points.forEach((p, i) => {
+    const x = xOf(p.time), y = yOf(p.value);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+  points.forEach(p => {
+    ctx.fillStyle = '#FFD600';
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(xOf(p.time), yOf(p.value), 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  });
+}
+
+function attachAutomationEvents(clipEl, clip) {
+  const canvas = clipEl.querySelector('.daw-clip-envelope');
+  if (!canvas) return;
+  canvas.onmousedown = (e) => {
+    e.stopPropagation();
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const time = (x / rect.width) * clip.duration;
+    const value = 1 - (y / rect.height);
+    if (!clip.automation) clip.automation = {};
+    if (!clip.automation.gain) clip.automation.gain = [];
+    const points = clip.automation.gain;
+    const hit = points.findIndex(p => {
+      const px = (p.time / clip.duration) * rect.width;
+      const py = (1 - p.value / 1.5) * rect.height;
+      return Math.hypot(x - px, y - py) < 10;
+    });
+    if (e.altKey && hit >= 0) points.splice(hit, 1);
+    else if ((e.ctrlKey || e.metaKey) || hit < 0) {
+      if (hit < 0) {
+        points.push({
+          time: Math.max(0, Math.min(clip.duration, time)),
+          value: Math.max(0, Math.min(1.5, value * 1.5)),
+        });
+        points.sort((a, b) => a.time - b.time);
+      }
+    }
+    const dragIdx = points.findIndex(p => {
+      const px = (p.time / clip.duration) * rect.width;
+      const py = (1 - p.value / 1.5) * rect.height;
+      return Math.hypot(x - px, y - py) < 10;
+    });
+    if (dragIdx >= 0) TIMELINE.dragging = { clip, canvas, index: dragIdx };
+    drawEnvelopeOnCanvas(canvas, clip, 'gain');
+  };
+  document.addEventListener('mousemove', (e) => {
+    const d = TIMELINE.dragging;
+    if (!d || d.canvas !== canvas) return;
+    const rect = d.canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const time = Math.max(0, Math.min(d.clip.duration, (x / rect.width) * d.clip.duration));
+    const value = Math.max(0, Math.min(1.5, (1 - y / rect.height) * 1.5));
+    d.clip.automation.gain[d.index] = { time, value };
+    d.clip.automation.gain.sort((a, b) => a.time - b.time);
+    drawEnvelopeOnCanvas(d.canvas, d.clip, 'gain');
+  });
+  document.addEventListener('mouseup', () => { TIMELINE.dragging = null; });
+}
+
+function redrawAllEnvelopes() {
+  document.querySelectorAll('.daw-clip').forEach(el => {
+    const clip = TIMELINE.clips.find(c => c.id === el.dataset.clipId);
+    if (!clip) return;
+    const canvas = el.querySelector('.daw-clip-envelope');
+    if (canvas) drawEnvelopeOnCanvas(canvas, clip, 'gain');
+  });
+}
+
+/* ---------- Mastering presets ---------- */
+function buildMasterPresets() {
+  const c = document.getElementById('masterPresets');
+  c.innerHTML = '';
+  for (const [key, cfg] of Object.entries(MASTER_PRESETS)) {
+    const btn = document.createElement('div');
+    btn.className = 'preset-btn' + (key === state.masterPreset ? ' active' : '');
+    btn.textContent = cfg.label;
+    btn.onclick = () => {
+      state.masterPreset = key;
+      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      // Applique au gain master
+      const cfg2 = MASTER_PRESETS[key];
+      if (state.masterGain) {
+        state.masterGain.gain.setTargetAtTime(Math.min(1.0, 0.8 * cfg2.gain), state.ctx.currentTime, 0.1);
+      }
+    };
+    c.appendChild(btn);
+  }
+}
+
+/* ---------- Export WAV 24-bit ---------- */
+async function exportWav24() {
+  if (!state.ctx || !Object.keys(state.stemBuffers).length) return;
+  setStatus('Export WAV 24-bit...', true);
+
+  try {
+    const sr = state.ctx.sampleRate;
+    const len = Math.floor(state.duration * sr);
+    const offline = new OfflineAudioContext(2, len, sr);
+    const masterGain = offline.createGain();
+    masterGain.gain.value = state.masterGain.gain.value;
+    masterGain.connect(offline.destination);
+    const cfg = MASTER_PRESETS[state.masterPreset];
+    const anySolo = Object.values(state.soloState).some(v => v);
+
+    for (const [name, meta] of Object.entries(STEM_META)) {
+      const buffer = state.stemBuffers[name];
+      if (!buffer) continue;
+      const src = offline.createBufferSource();
+      src.buffer = buffer;
+      const filter = offline.createBiquadFilter();
+      filter.type = meta.filterType;
+      filter.frequency.value = meta.freq;
+      filter.Q.value = meta.Q;
+      const gain = offline.createGain();
+      let g;
+      if (anySolo) g = state.soloState[name] ? state.stemVolumes[name] : 0;
+      else g = state.muteState[name] ? 0 : state.stemVolumes[name];
+      gain.gain.value = g * Math.min(1.0, cfg.gain);
+      src.connect(filter);
+      filter.connect(gain);
+      gain.connect(masterGain);
+      src.start(0);
+    }
+    const rendered = await offline.startRendering();
+    const blob = audioBufferToWav24(rendered);
+    downloadBlob(blob, 'remixforge_mix_24bit.wav');
+    setStatus('Export ✓', false);
+  } catch (err) {
+    console.error(err);
+    setStatus('Erreur export', false);
+  }
+}
+
+function audioBufferToWav24(buffer) {
+  const numChannels = buffer.numberOfChannels;
+  const sampleRate = buffer.sampleRate;
+  const length = buffer.length;
+  const bytesPerSample = 3;
+  const dataSize = length * numChannels * bytesPerSample;
+  const totalSize = 44 + dataSize;
+  const ab = new ArrayBuffer(totalSize);
+  const view = new DataView(ab);
+  const writeString = (off, s) => { for (let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i)); };
+  writeString(0, 'RIFF');
+  view.setUint32(4, totalSize - 8, true);
+  writeString(8, 'WAVE');
+  writeString(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, numChannels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * numChannels * bytesPerSample, true);
+  view.setUint16(32, numChannels * bytesPerSample, true);
+  view.setUint16(34, 24, true);
+  writeString(36, 'data');
+  view.setUint32(40, dataSize, true);
+  const channels = [];
+  for (let c = 0; c < numChannels; c++) channels.push(buffer.getChannelData(c));
+  let offset = 44;
+  for (let i = 0; i < length; i++) {
+    for (let c = 0; c < numChannels; c++) {
+      let s = Math.max(-1, Math.min(1, channels[c][i]));
+      const intSample = Math.floor(s * 8388608 + (s >= 0 ? 0.5 : -0.5));
+      view.setUint8(offset, intSample & 0xFF);
+      view.setUint8(offset + 1, (intSample >> 8) & 0xFF);
+      view.setUint8(offset + 2, (intSample >> 16) & 0xFF);
+      offset += 3;
+    }
+  }
+  return new Blob([ab], { type: 'audio/wav' });
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* ---------- Recorder ---------- */
+function toggleRecording() {
+  const btn = document.getElementById('recBtn');
+  if (state.mediaRecorder && state.mediaRecorder.state === 'recording') {
+    state.mediaRecorder.stop();
+    btn.classList.remove('recording');
+    btn.textContent = '⏺';
+    return;
+  }
+  if (!state.mediaStreamDest) return;
+  state.recordedChunks = [];
+  const mr = new MediaRecorder(state.mediaStreamDest.stream);
+  mr.ondataavailable = (e) => { if (e.data.size > 0) state.recordedChunks.push(e.data); };
+  mr.onstop = () => {
+    const blob = new Blob(state.recordedChunks, { type: 'audio/webm' });
+    downloadBlob(blob, 'remixforge_recording.webm');
+    addChatMessage('system', '⬇ Enregistrement téléchargé', '#00FF9D');
+  };
+  mr.start();
+  state.mediaRecorder = mr;
+  btn.classList.add('recording');
+  btn.textContent = '⏹';
+}
+
+/* ---------- Sync (BroadcastChannel) ---------- */
+const channel = new BroadcastChannel('remixforge-sync');
+const myName = 'User-' + TAB_ID.slice(-4);
+const myColor = '#' + ['00F0FF', 'FF0080', '9D00FF', '00FF9D', 'FFD600'][Math.floor(Math.random()*5)];
+
+channel.onmessage = (e) => {
+  const msg = e.data;
+  if (msg.from === TAB_ID) return;
+  if (msg.type === 'chat') {
+    addChatMessage(msg.userName, msg.text, msg.color, msg.isMe);
+  }
+};
+
+function toggleSync() {
+  state.syncEnabled = !state.syncEnabled;
+  const btn = document.getElementById('syncBtn');
+  btn.classList.toggle('active', state.syncEnabled);
+  btn.textContent = state.syncEnabled ? '🔗 ON' : '🔗 SYNC';
+  addChatMessage('system', state.syncEnabled ? '🔗 Sync activé' : '🔗 Sync désactivé', '#00FF9D');
+}
+
+/* ---------- Chat ---------- */
+function sendChatMessage(text) {
+  if (!text.trim()) return;
+  channel.postMessage({
+    type: 'chat', from: TAB_ID, userName: myName, color: myColor,
+    text: text.trim(), isMe: true,
+  });
+  addChatMessage(myName, text, myColor, true);
+}
+
+function addChatMessage(author, text, color, isMe = false) {
+  const box = document.getElementById('chatMessages');
+  const el = document.createElement('div');
+  el.className = 'chat-message';
+  const time = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  const isSystem = author === 'system';
+  el.innerHTML = `
+    <div class="chat-header">
+      <span class="chat-author" style="color:${color}">${isSystem ? 'SYS' : (isMe ? 'MOI' : author)}</span>
+      <span class="chat-time">${time}</span>
+    </div>
+    <div class="chat-body ${isSystem ? 'system' : ''}" style="color:${isSystem ? '' : color}">${text}</div>
+  `;
+  box.appendChild(el);
+  box.scrollTop = box.scrollHeight;
+}
+
+/* ---------- Utils ---------- */
+function fmtTime(s) {
+  if (!isFinite(s)) return '00:00.0';
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  const d = Math.floor((s % 1) * 10);
+  return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}.${d}`;
+}
+
+function setStatus(text, busy) {
+  document.getElementById('statusText').textContent = text;
+  document.getElementById('statusDot').className = 'status-dot' + (busy ? ' busy' : '');
+}
+
+function setStatusInfo(text) {
+  document.getElementById('statusInfo').textContent = '// ' + text;
+}
+
+function showHelp() {
+  alert(`🎛 RemixForge AI — Aide
+
+1. IMPORT
+   Clique ou dépose un fichier audio
+
+2. LECTURE
+   ▶ Play · ■ Stop · ⏺ Record
+   Espace = Play/Pause
+   Échap = Stop
+
+3. STEMS (6)
+   M = Mute · S = Solo
+   Chaque stem est filtré (EQ) pour sonner différemment
+
+4. AUTOMATION
+   Ctrl+clic = ajouter un point
+   Alt+clic = supprimer
+   Drag = déplacer
+   Les points contrôlent le gain en direct
+
+5. MASTERING
+   Choisis un preset (Streaming/Club/DJ/Broadcast)
+   Le gain master s'ajuste automatiquement
+
+6. EXPORT
+   WAV 24-bit (mix final)
+   WEBM (enregistrement rapide)
+
+7. COLLABORATION
+   Ouvre dans 2 onglets
+   Clique 🔗 SYNC dans les deux
+   Chat partagé entre onglets
+
+RACCOURCIS
+Espace = Play/Pause
+Échap = Stop`);
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+  if (e.code === 'Escape') { stopAll(); }
+});
+
+/* ---------- Init ---------- */
+buildMasterPresets();
+</script>
+</body>
+</html>
